@@ -7,9 +7,39 @@ After devoping and deploying the system we felt really proud that we have accomp
 
 ## Health Checks as a solution
 We’re going to implement some basic health checking logic, so you can see how easy it can be to expose this kind of functionality.
+Configure/Intergation of health is preety easy. Please follow the steps bellow:
 
 >install-package Microsoft.AspNetCore.Diagnostics.HealthChecks
 
+Open your startup.cs file. In here, we will add the basic health check logic to get us started. Edit (or add) your ConfigureServices / Configure methods to add the following lines.
+
+public void ConfigureServices(IServiceCollection services)
+ {
+      services.AddHealthChecks();
+ }
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+ {
+    //other code
+    app.UseHealthChecks("/health");
+    //other code
+ }
+ 
+ It will give an response like 
+ 
+ RESPONSE:
+ 200 OK
+ Healthy
+ 
+ This is so simple, but of course it does nothing we want.
+ 
+ Let's assume our application has lots of dependencies like MongoDB, SQL Server, RabbitMQ, Redis, AWS S3, Other Api services and so on. We can tell our api healthy when find all of those are healthy.
+ 
+ GitHub contributors, particularly the team at [Xabaril/AspNetCore.Diagnostics.HealthChecks] offer a very good list of health check nuget packages to helping out.
+ 
+  
+ [Xabaril/AspNetCore.Diagnostics.HealthChecks]: <https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks>
+
+ 
 
 
 
