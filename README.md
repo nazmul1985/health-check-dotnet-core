@@ -114,6 +114,45 @@ Open your startup.cs file. In here, we will add the basic health check logic to 
                     });
                 }, "DependentService", HealthStatus.Unhealthy, new[] { "Dependency", "Api" })
   ```
+ ### Health Check logs in Microsoft Azure Application Insight
+  
+We can also push the health check response or logs into Azure Application Insights. For, that you have configure Application Insight Telemetry first. Then add AddApplicationInsightsPublisher to health checks. 
+
+> Install-Package Microsoft.ApplicationInsights.AspNetCore
+
+> Install-Package AspNetCore.HealthChecks.Publisher.ApplicationInsights
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ 
+ //Configure ApplicationInsight Telemetry
+ services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
+ 
+ services.AddHealthChecks()
+          .AddApplicationInsightsPublisher(Configuration["ApplicationInsights:InstrumentationKey"])
+  ```
+  
+  ### Custom Health Check
+  
+  Now, we might want to write some custom health check logic in our service. Let assume we might want to check that if database contains specific records or not. Or we might want to check if the service contains specific files and specific records in it.
+  
+  For this we can write our custom health check service:
+   ```sh
+  public class HasFilesHealthCheck : IHealthCheck
+    {
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
+            CancellationToken cancellationToken = new CancellationToken())
+        {
+            //TODO: Implement your own healthcheck logic here
+            var isHealthy = true;
+            if (isHealthy)
+                return Task.FromResult(HealthCheckResult.Healthy("I am one healthy as I have the required files with me."));
+
+            return Task.FromResult(HealthCheckResult.Unhealthy("I am the sad, unhealthy microservice API. Because, I don't have the files I required."));
+        }
+    }
+  ```
+  
   
  [Xabaril/AspNetCore.Diagnostics.HealthChecks]: <https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks>
 
