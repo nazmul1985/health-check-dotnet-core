@@ -12,24 +12,24 @@ Configure/Intergation of health is preety easy. Please follow the steps bellow:
 >install-package Microsoft.AspNetCore.Diagnostics.HealthChecks
 
 Open your startup.cs file. In here, we will add the basic health check logic to get us started. Edit (or add) your ConfigureServices / Configure methods to add the following lines.
-
-public void ConfigureServices(IServiceCollection services)
+```sh
+ public void ConfigureServices(IServiceCollection services)
  {
       services.AddHealthChecks();
  }
-public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
  {
     //other code
     app.UseHealthChecks("/health");
     //other code
  }
- 
+ ```
  It will give an response like 
- 
+ ```sh
  RESPONSE:
  200 OK
  Healthy
- 
+  ```
  This is so simple, but of course it does nothing we want.
  
  Let's assume our application has lots of dependencies like MongoDB, SQL Server, RabbitMQ, Redis, AWS S3, Other Api services and so on. We can tell our api healthy when find all of those are healthy.
