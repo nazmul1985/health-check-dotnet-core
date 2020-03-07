@@ -1,10 +1,10 @@
 # Implementing Health Checks in ASP.NET Core
-# What went wrong after implemting micro-service based system
+## What went wrong after implemting micro-service based system
 Micro-service architecture is a latest trend and clearly a good thing to build large-scale web application. We have built a lovely distributed system based on micro-service architecture which is far easier to scale and deploy. Our system included a lerge number of .net core api, RabbitMQ, Redis, MongoDB, MS SQL Server, Socket Cluster and we have depoyed the system using docker, kubernetes, istio. 
 
 After devoping and deploying the system we felt really proud that we have accomplished something amazing. And now are getting reported some parts of the application is not working, it means that it has sick service into the system somewhere which is failing to do its job properly, and now the race is on to find out who’s healthy and who’s not. As an example, we found out that some of the service is not working properly because file store service was not healthy and unable to upload and download file peroperly. So, it is neccesary to identify from a service that it's dependent service is not healthy.
 
-# Health Checks as a solution
+## Health Checks as a solution
 Implementing proper health-checking system can be a good solution the problem. 
 We’re going to implement some basic health checking logic, so you can see how easy it can be to expose this kind of functionality.
 Configure/Intergation of health is preety easy. Please follow the steps bellow:
@@ -159,7 +159,7 @@ We can also push the health check response or logs into Azure Application Insigh
           .AddCheck<HasFilesHealthCheck>("Api");
   ```
   
- ### Customized Health Check Response
+ ## Customized Health Check Response
  We can customized the response of health check as we want. Let say we want our health check response in Json format. For that we have to add function for response formatting. Like I added the following methid in Startup.cs file. You can put it in a seperate clss file if you want.
  
   ```sh
@@ -173,8 +173,7 @@ We can also push the health check response or logs into Azure Application Insigh
                 Converters = new List<JsonConverter>
                 {
                     new StringEnumConverter()
-                },
-                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+                }                
             });
             return httpContext.Response.WriteAsync(text);
         }
@@ -187,8 +186,18 @@ We can also push the health check response or logs into Azure Application Insigh
                 ResponseWriter = CustomHealthCheckResponse
             });
    ```
-  
+ ## Conclusion
+ There are lots of other things to consider in health check. ASP.NET Core has really added first-class support for health checks, and made it very easy to build and customise them at the same time. You can check out this [Microsoft-Documentation] for digg down more details.
+ 
+ Docker offers a built-in HEALTHCHECK directive that can be used to check the status of an app that uses the basic health check configuration:
+ ```sh
+  HEALTHCHECK CMD curl --fail http://localhost:5000/health || exit
+ ```
+ 
+ Hope this helps.
+ 
  [Xabaril/AspNetCore.Diagnostics.HealthChecks]: <https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks>
+ [Microsoft-Documentation]: <https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-2.2>
 
  
 
