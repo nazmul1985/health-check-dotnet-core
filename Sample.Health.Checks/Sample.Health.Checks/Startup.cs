@@ -33,7 +33,7 @@ namespace Sample.Health.Checks
             //Configure ApplicationInsight Telemetry
             services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
             services.AddHealthChecks()
-                 //Configure SQL Server connectivity Health Checking
+                //Configure SQL Server connectivity Health Checking
                 .AddSqlServer(Configuration["SQLServerConnectionString"], name: "sql",
                     failureStatus: HealthStatus.Degraded,
                     tags: new[] { "db", "sql", "sqlserver" })
@@ -43,7 +43,8 @@ namespace Sample.Health.Checks
                 //Configure Redis connectivity Health Checking
                 .AddRedis(Configuration["RedisConnectionString"], "Redis", HealthStatus.Unhealthy)
                 //Configure RabbitMQ connectivity Health Checking
-                .AddRabbitMQ(Configuration["RabbitMqConnectionString"], "RabbitMQ", HealthStatus.Unhealthy, new[] { "Rabbit", "RabbitMQ" })
+                .AddRabbitMQ(Configuration["RabbitMqConnectionString"], "RabbitMQ", HealthStatus.Unhealthy,
+                new[] { "Rabbit", "RabbitMQ" })
                 //Dependent service api health checking
                 .AddUrlGroup(o =>
                 {
@@ -52,7 +53,7 @@ namespace Sample.Health.Checks
                         s.UseGet();
                         s.AddCustomHeader("Authorization", Configuration["Authorization"]);
                     });
-                }, "FileStore", HealthStatus.Unhealthy, new[] { "FileStore", "Api", "FileStoreApi" })
+                }, "DependentService", HealthStatus.Unhealthy, new[] { "Dependency", "Api" })
                 .AddS3(s3 =>
                 {
                     s3.AccessKey = Configuration["Aws:S3:AccessKey"];
@@ -85,7 +86,7 @@ namespace Sample.Health.Checks
                 //    });
                 //})
                 .AddPingHealthCheck(p => { p.AddHost("google.com", 500); })
-                .AddCheck<ApiHealthCheck>("Api");
+                .AddCheck<HasFilesHealthCheck>("Api");
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -96,13 +97,13 @@ namespace Sample.Health.Checks
             app.UseMvcWithDefaultRoute();
             app.UseHealthChecks("/Health", new HealthCheckOptions
             {
-                ResponseWriter = WriteHealthCheckResponse
+                ResponseWriter = CustomHealthCheckResponse
             });
             app.UseHealthChecksUI();
 
         }
 
-        private static Task WriteHealthCheckResponse(HttpContext httpContext, HealthReport result)
+        private static Task CustomHealthCheckResponse(HttpContext httpContext, HealthReport result)
         {
             httpContext.Response.ContentType = "application / json";
             //var json = new JObject(
@@ -128,7 +129,7 @@ namespace Sample.Health.Checks
         }
     }
 
-    public class ApiHealthCheck : IHealthCheck
+    public class HasFilesHealthCheck : IHealthCheck
     {
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
             CancellationToken cancellationToken = new CancellationToken())
@@ -136,9 +137,9 @@ namespace Sample.Health.Checks
             //TODO: Implement your own healthcheck logic here
             var isHealthy = true;
             if (isHealthy)
-                return Task.FromResult(HealthCheckResult.Healthy("I am one healthy microservice API"));
+                return Task.FromResult(HealthCheckResult.Healthy("I am one healthy as I have the required files with me."));
 
-            return Task.FromResult(HealthCheckResult.Unhealthy("I am the sad, unhealthy microservice API"));
+            return Task.FromResult(HealthCheckResult.Unhealthy("I am the sad, unhealthy microservice API. Because, I don't have the files I required."));
         }
     }
 }
