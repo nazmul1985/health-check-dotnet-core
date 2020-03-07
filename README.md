@@ -24,7 +24,7 @@ Open your startup.cs file. In here, we will add the basic health check logic to 
     //other code
  }
  ```
- It will give an response like 
+ Now if you go to http://[YourService]/health, it will give an response like 
  ```sh
  RESPONSE:
  200 OK
@@ -132,7 +132,7 @@ We can also push the health check response or logs into Azure Application Insigh
           .AddApplicationInsightsPublisher(Configuration["ApplicationInsights:InstrumentationKey"])
   ```
   
-  ### Custom Health Check
+  ### Customized Health Check
   
   Now, we might want to write some custom health check logic in our service. Let assume we might want to check that if database contains specific records or not. Or we might want to check if the service contains specific files and specific records in it.
   
@@ -153,6 +153,40 @@ We can also push the health check response or logs into Azure Application Insigh
     }
   ```
   
+ Then Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+   services.AddHealthChecks()
+          .AddCheck<HasFilesHealthCheck>("Api");
+  ```
+  
+ ### Customized Health Check Response
+ We can customized the response of health check as we want. Let say we want our health check response in Json format. For that we have to add function for response formatting. Like I added the following methid in Startup.cs file. You can put it in a seperate clss file if you want.
+ 
+  ```sh
+  private static Task CustomHealthCheckResponse(HttpContext httpContext, HealthReport result)
+        {
+            httpContext.Response.ContentType = "application / json";            
+            var text = JsonConvert.SerializeObject(result, Formatting.Indented, new JsonSerializerSettings
+            {
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Converters = new List<JsonConverter>
+                {
+                    new StringEnumConverter()
+                },
+                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+            });
+            return httpContext.Response.WriteAsync(text);
+        }
+  ```
+  
+  To configure the custom response formatter you have to add the following code in Configure method.
+   ```sh
+  app.UseHealthChecks("/Health", new HealthCheckOptions
+            {
+                ResponseWriter = CustomHealthCheckResponse
+            });
+   ```
   
  [Xabaril/AspNetCore.Diagnostics.HealthChecks]: <https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks>
 
