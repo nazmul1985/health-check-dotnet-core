@@ -36,6 +36,84 @@ Open your startup.cs file. In here, we will add the basic health check logic to 
  
  GitHub contributors, particularly the team at [Xabaril/AspNetCore.Diagnostics.HealthChecks] offer a very good list of health check nuget packages to helping out.
  
+ ### SQL Server Health Check
+  >Install-Package AspNetCore.HealthChecks.SqlServer
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                 //Configure SQL Server connectivity Health Checking
+                .AddSqlServer(Configuration["SQLServerConnectionString"], name: "sql",
+                    failureStatus: HealthStatus.Degraded,
+                    tags: new[] { "db", "sql", "sqlserver" })
+  ```
+ ### MongoDB Health Check
+  >Install-Package AspNetCore.HealthChecks.MongoDb
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                //Configure MongoDb connectivity Health Checking
+                .AddMongoDb(Configuration["MongodbConnectionString"], "MongoDB", HealthStatus.Unhealthy,
+                    new[] { "db", "mongo", "mongodb" })
+  ```
+  
+  ### Redis Health Check
+  >Install-Package AspNetCore.HealthChecks.Redis
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                 //Configure Redis connectivity Health Checking
+                .AddRedis(Configuration["RedisConnectionString"], "Redis", HealthStatus.Unhealthy)
+  ```
+  ### RabbitMQ Health Check
+  >Install-Package AspNetCore.HealthChecks.RabbitMQ
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                //Configure RabbitMQ connectivity Health Checking
+                .AddRabbitMQ(Configuration["RabbitMqConnectionString"], "RabbitMQ", HealthStatus.Unhealthy, 
+                new[] { "Rabbit", "RabbitMQ" })
+  ```
+  ### AWS S3 Health Check
+  
+  >Install-Package AspNetCore.HealthChecks.Aws.S3
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                 .AddS3(s3 =>
+                {
+                    s3.AccessKey = Configuration["Aws:S3:AccessKey"];
+                    s3.BucketName = Configuration["Aws:S3:BucketName"];
+                    s3.SecretKey = Configuration["Aws:S3:SecretKey"];
+                    s3.S3Config = new AmazonS3Config
+                    {
+                        RegionEndpoint = RegionEndpoint.GetBySystemName(Configuration["Aws:S3:Region"])
+                    };
+                })
+  ```
+  ### Dependent other service Health Check
+  
+  The service can have dependencies on a specific API end-end point of other service. To check the health of dependent api you need to install the following nuget package.
+  
+  >Install-Package AspNetCore.HealthChecks.Uris
+ 
+ Add following lines in ConfigureServices method in Startup.cs
+ ```sh
+ services.AddHealthChecks()
+                 //Dependent service api health checking
+                .AddUrlGroup(o =>
+                {
+                    o.AddUri(new Uri("http://DependentService/api/Health"), s =>
+                    {
+                        s.UseGet();
+                        s.AddCustomHeader("Authorization", Configuration["Authorization"]);
+                    });
+                }, "DependentService", HealthStatus.Unhealthy, new[] { "Dependency", "Api" })
+  ```
   
  [Xabaril/AspNetCore.Diagnostics.HealthChecks]: <https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks>
 
