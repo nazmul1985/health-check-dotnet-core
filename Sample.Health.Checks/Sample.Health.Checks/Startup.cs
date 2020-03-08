@@ -12,8 +12,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
+using Sample.Health.Checks.CustomHealthChecks;
 
 namespace Sample.Health.Checks
 {
@@ -32,19 +32,24 @@ namespace Sample.Health.Checks
 
             //Configure ApplicationInsight Telemetry
             services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
+            ConfigureHealthCheck(services);
+        }
+
+        private void ConfigureHealthCheck(IServiceCollection services)
+        {
             services.AddHealthChecks()
                 //Configure SQL Server connectivity Health Checking
                 .AddSqlServer(Configuration["SQLServerConnectionString"], name: "sql",
                     failureStatus: HealthStatus.Degraded,
-                    tags: new[] { "db", "sql", "sqlserver" })
+                    tags: new[] {"db", "sql", "sqlserver"})
                 //Configure MongoDb connectivity Health Checking
                 .AddMongoDb(Configuration["MongodbConnectionString"], "MongoDB", HealthStatus.Unhealthy,
-                    new[] { "db", "mongo", "mongodb" })
+                    new[] {"db", "mongo", "mongodb"})
                 //Configure Redis connectivity Health Checking
                 .AddRedis(Configuration["RedisConnectionString"], "Redis", HealthStatus.Unhealthy)
                 //Configure RabbitMQ connectivity Health Checking
                 .AddRabbitMQ(Configuration["RabbitMqConnectionString"], "RabbitMQ", HealthStatus.Unhealthy,
-                new[] { "Rabbit", "RabbitMQ" })
+                    new[] {"Rabbit", "RabbitMQ"})
                 //Dependent service api health checking
                 .AddUrlGroup(o =>
                 {
@@ -53,7 +58,7 @@ namespace Sample.Health.Checks
                         s.UseGet();
                         s.AddCustomHeader("Authorization", Configuration["Authorization"]);
                     });
-                }, "DependentService", HealthStatus.Unhealthy, new[] { "Dependency", "Api" })
+                }, "DependentService", HealthStatus.Unhealthy, new[] {"Dependency", "Api"})
                 .AddS3(s3 =>
                 {
                     s3.AccessKey = Configuration["Aws:S3:AccessKey"];
@@ -126,20 +131,6 @@ namespace Sample.Health.Checks
                 StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
             });
             return httpContext.Response.WriteAsync(text);
-        }
-    }
-
-    public class HasFilesHealthCheck : IHealthCheck
-    {
-        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            //TODO: Implement your own healthcheck logic here
-            var isHealthy = true;
-            if (isHealthy)
-                return Task.FromResult(HealthCheckResult.Healthy("I am one healthy as I have the required files with me."));
-
-            return Task.FromResult(HealthCheckResult.Unhealthy("I am the sad, unhealthy microservice API. Because, I don't have the files I required."));
         }
     }
 }
